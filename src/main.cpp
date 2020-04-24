@@ -392,7 +392,7 @@ int GetMovementCommand(SVizData vd)
           if(vd.PotentialScore > 4)
             return Shake;  // Not very ambitious  
           if(vd.PotentialScore > 2)
-            return Shake;  // Do they understand how this is meant to work
+            return Shake;  // Do they understand how this is meant to work ??!?
 
           // This is the monkey level
           return Shake;           
