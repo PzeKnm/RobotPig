@@ -9,6 +9,110 @@
 #define __CMovements_H__
 
 #include "ServoSet.h"
+#include <avr/pgmspace.h>
+
+
+
+const char m_cmdEyesFront [] PROGMEM =
+{
+  "\
+S1P090,S2P090,S3P090,S4P090:1000ms"
+};
+
+
+//-----------------------------------------------------------------------------------
+// nod of the head 
+const char m_cmdNod [] PROGMEM =
+{
+  "\
+S1P110,S2P090,S3P090,S4P090:0500ms\
+S1P070,S2P090,S3P090,S4P090:0300ms\
+S1P110,S2P090,S3P090,S4P090:0500ms\
+S1P070,S2P090,S3P090,S4P090:0300ms\
+S1P090,S2P090,S3P090,S4P090:0500ms"
+};
+
+//-----------------------------------------------------------------------------------
+// shake of the head 
+const char m_cmdShakeHead [] PROGMEM =
+{
+  "\
+S1P090,S2P090,S3P090,S4P090:0500ms\
+S1P090,S2P130,S3P090,S4P090:0300ms\
+S1P090,S2P050,S3P090,S4P090:0500ms\
+S1P090,S2P130,S3P090,S4P090:0300ms\
+S1P090,S2P090,S3P090,S4P090:0500ms"
+};
+
+//-----------------------------------------------------------------------------------
+// wave left arm
+const char m_cmdWaveLeft [] PROGMEM =
+{
+  "\
+S1P090,S2P090,S3P090,S4P090:0500ms\
+S1P090,S2P090,S3P140,S4P090:0500ms\
+S1P090,S2P090,S3P090,S4P090:0500ms"
+};
+
+//-----------------------------------------------------------------------------------
+// wave right arm
+const char m_cmdWaveRight [] PROGMEM =
+{
+  "\
+S1P090,S2P090,S3P090,S4P100:0500ms\
+S1P090,S2P090,S3P090,S4P050:0500ms\
+S1P090,S2P090,S3P090,S4P100:0500ms"
+};
+
+//-----------------------------------------------------------------------------------
+// both arms up, then down, then up again quickly
+const char m_cmdHooray [] PROGMEM =
+{
+  "\
+S1P090,S2P090,S3P090,S4P090:0500ms\
+S1P090,S2P090,S3P040,S4P140:0500ms\
+S1P140,S2P090,S3P140,S4P040:0300ms\
+S1P140,S2P090,S3P120,S4P060:0100ms\
+S1P140,S2P090,S3P140,S4P040:0100ms\
+S1P140,S2P090,S3P120,S4P060:0100ms\
+S1P140,S2P090,S3P140,S4P040:0100ms"
+};
+
+//-----------------------------------------------------------------------------------
+// arms alternate up and down, head shake side to side
+const char m_cmdPirateDance [] PROGMEM =
+{
+  "\
+S1P090,S2P090,S3P090,S4P090:0500ms\
+S1P090,S2P130,S3P150,S4P150:0500ms\
+S1P090,S2P050,S3P040,S4P040:0500ms\
+S1P090,S2P130,S3P150,S4P150:0500ms\
+S1P090,S2P050,S3P040,S4P040:0500ms\
+S1P090,S2P090,S3P090,S4P090:0500ms"
+};
+
+/*
+  S1: Nod    30 - Backward,   150  - Forward
+  S2: Shake  30 - Right,      150  - Left
+  S3: Left   30 - Down        150  - Up
+  S4: right  30 - Up          150  - Down
+*/
+
+// How long each line is
+#define COMMAND_LINE_LENGTH 34
+const int NUMBER_OF_MOVEMENTS = 7;
+
+const char * const movements[NUMBER_OF_MOVEMENTS] PROGMEM = 
+   { 
+   m_cmdEyesFront, 
+   m_cmdNod, 
+   m_cmdShakeHead,
+   m_cmdWaveLeft,
+   m_cmdWaveRight,
+   m_cmdHooray,
+   m_cmdPirateDance
+   };
+
 
 
 class CMovements
@@ -19,8 +123,18 @@ public:
 	CMovements();
 	~CMovements();
 
+    enum Movement_Type {
+    EyesFront = 0,
+    Nod = 1,
+    ShakeHead = 2,
+    WaveLeft = 3,  
+    WaveRight = 4,   
+    Hooray = 5,
+    PirateDance = 6,
+  };
 
-  void SetCommandSet(uint8_t ix, const char* pCmd);
+
+  void SetCommandSet(uint8_t ix, uint16_t addrCmd);
 
   void Init();
 
@@ -39,8 +153,8 @@ protected:
 private:
 
 
-  // How long each line is
-  #define COMMAND_LINE_LENGTH 34
+
+
 
   // Each command set has the format:
   //            1         2         3
@@ -48,9 +162,10 @@ private:
   //  "S1P110,S2P140,S3P035,S4P100:1000ms"
   //  "S1P110,S2P140,S3P035,S4P100:1000ms"
   // with each line taking up exactly 34 chars  
-  const char* m_CommandSets[6]; 
+  // What we're storing here are addresses in PROGMEM
+  uint16_t m_CommandSets[NUMBER_OF_MOVEMENTS]; 
 
-
+  char m_bufferCurrentLine [COMMAND_LINE_LENGTH + 1];
 
   CServoSet m_set; 
 
@@ -67,77 +182,8 @@ private:
   int GetCommandLineTotalCount(int nCmd);
 
 
-
-
-
-
- // const char PROGMEM m_my[5] = {'N', 'o','n', 'e', '\0'};
-
   // Commands available
   const char m_chNullCommand[5] = {'N', 'o','n', 'e', '\0'};
-
-
-
-
-/*
-  // Command 0 . Eyes front, rest position
-  #define COMMAND_0_COMMAND_COUNT 1
-  const char m_cmd0[COMMAND_0_COMMAND_COUNT][COMMAND_LINE_LENGTH]  =
-  {
-      "S01P090,S02P070,S03P090,S04P100:1000ms"
-  };
-*/
-
-/*
-  // Command 1 . No idea what this command does
-  #define COMMAND_1_COMMAND_COUNT 10  
-  const char m_cmd1[COMMAND_1_COMMAND_COUNT][COMMAND_LINE_LENGTH]  =
-  {
-      "S01P110,S02P140,S03P035,S04P100:1000ms",
-      "S01P110,S02P140,S03P035,S04P020:0200ms",
-      "S01P110,S02P140,S03P035,S04P160:0400ms",
-      "S01P110,S02P140,S03P035,S04P100:0200ms",
-      "S01P170,S02P140,S03P035,S04P100:0300ms",
-      "S01P110,S02P140,S03P035,S04P100:0300ms",
-      "S01P170,S02P140,S03P035,S04P100:0200ms",
-      "S01P020,S02P140,S03P035,S04P100:0300ms",
-      "S01P110,S02P140,S03P035,S04P100:0200ms",
-      "S01P110,S02P140,S03P035,S04P100:2000ms",
-  };
-*/
-/*
-  // Command 2
-  static const int m_cmd2Count = 10;
-  char m_cmd2[m_cmd2Count][COMMAND_LINE_LENGTH]=
-  {
-      "S01P110,S02P140,S03P035,S04P100:1000ms",
-      "S01P110,S02P140,S03P035,S04P020:0200ms",
-      "S01P110,S02P140,S03P035,S04P160:0400ms",
-      "S01P110,S02P140,S03P035,S04P100:0200ms",
-      "S01P170,S02P140,S03P035,S04P100:0300ms",
-      "S01P110,S02P140,S03P035,S04P100:0300ms",
-      "S01P170,S02P140,S03P035,S04P100:0200ms",
-      "S01P020,S02P140,S03P035,S04P100:0300ms",
-      "S01P110,S02P140,S03P035,S04P100:0200ms",
-      "S01P110,S02P140,S03P035,S04P100:2000ms",
-  };
-
-  // Command 3
-  static const int m_cmd3Count = 10;
-  char m_cmd3[m_cmd3Count][COMMAND_LINE_LENGTH]=
-  {
-      "S01P110,S02P140,S03P035,S04P100:1000ms",
-      "S01P110,S02P140,S03P035,S04P020:0200ms",
-      "S01P110,S02P140,S03P035,S04P160:0400ms",
-      "S01P110,S02P140,S03P035,S04P100:0200ms",
-      "S01P170,S02P140,S03P035,S04P100:0300ms",
-      "S01P110,S02P140,S03P035,S04P100:0300ms",
-      "S01P170,S02P140,S03P035,S04P100:0200ms",
-      "S01P020,S02P140,S03P035,S04P100:0300ms",
-      "S01P110,S02P140,S03P035,S04P100:0200ms",
-      "S01P110,S02P140,S03P035,S04P100:2000ms",
-  };
-*/
 
 }; 
 

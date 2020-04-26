@@ -35,6 +35,8 @@ public:
 
 private:
 
+  void PrintServoPos(int nServo, int nPos);
+
   Servo m_servo;
 
   int m_nPin;

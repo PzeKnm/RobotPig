@@ -3,12 +3,11 @@
 
 #include "Movements.h"
 #include "Arduino.h"
-#include <avr/pgmspace.h>
+
 
 
 CMovements::CMovements()
 {  
- // m_pServoSet = NULL;
  m_bBusy = false;
 } 
 
@@ -22,15 +21,55 @@ CMovements::~CMovements()
 void CMovements::Init()
 {
   m_set.Init();
+
+  for(int n = 0; n < NUMBER_OF_MOVEMENTS; n++)
+  {
+    //// Serial.print("Adding set: ");Serial.println(n);
+    uint16_t addr = (uint16_t)&movements[n];
+    SetCommandSet(n, addr);
+/*
+    int nLineCount = GetCommandLineTotalCount(n);
+    Serial.print("nLineCount: ");Serial.println(nLineCount);
+    for(int nLine = 0; nLine < nLineCount; nLine++)
+    {
+      const char* pLine = GetCommandLine(n, nLine);
+      Serial.print("pLine: ");Serial.println(pLine);
+    }*/
+  }
+
+
 }
 
 
-void CMovements::SetCommandSet(uint8_t ix, const char* pCmd)
+void CMovements::SetCommandSet(uint8_t ix, uint16_t addrCmd)
 {
-  m_CommandSets[ix] = pCmd;
+   m_CommandSets[ix] = addrCmd;  
 
-//  Serial.println(m_CommandSets[ix]);
-//  Serial.println(strlen(m_CommandSets[ix]));
+/*Serial.println("CMovements::SetCommandSet");
+  int nLineCount = GetCommandLineTotalCount(ix);
+  for(int nLine = 0; nLine < nLineCount; nLine++)
+  {
+    const char* pLine = GetCommandLine(ix, nLine);
+    Serial.print("pLine: ");Serial.println(pLine);
+  }
+*/
+
+  /*
+  Serial.println("CMovements::SetCommandSet");
+  char * ptr = (char *) pgm_read_word (addrCmd);
+
+  int nLen = strlen_P(ptr);
+  Serial.print("length of buffer: ");Serial.println(nLen);
+
+  int nLineCount = nLen / COMMAND_LINE_LENGTH;
+  Serial.print("nLineCount: ");Serial.println(nLineCount);
+  for(int nLine = 0; nLine < nLineCount; nLine++)
+  {
+    char buffer [COMMAND_LINE_LENGTH + 1];
+    strncpy_P(buffer, ptr + (nLine * COMMAND_LINE_LENGTH), COMMAND_LINE_LENGTH);
+    buffer[COMMAND_LINE_LENGTH] = '\0';
+    Serial.println (buffer);
+  }*/  
 }
 
 
@@ -73,10 +112,17 @@ bool CMovements::IsBusy()
   
 void CMovements::DoCommand(int nCmd)
 {
+  if(nCmd >= NUMBER_OF_MOVEMENTS)
+  {
+    Serial.print("Invalid command: "); Serial.println(nCmd);
+    return;
+  }
+
   m_nCurrentCmd = nCmd;
   m_ixCurrentLine = 0;
 
   const char* pszCmd = GetCommandLine(m_nCurrentCmd, m_ixCurrentLine);
+  //// Serial.print("Command: "); Serial.println(pszCmd);
 
   if(pszCmd == m_chNullCommand)
   {
@@ -98,51 +144,22 @@ void CMovements::CueUpNextCommand(int nCmd)
 
 const char* CMovements::GetCommandLine(int nCmd, int ixLine)
 {
-  /*
-  Serial.println("CMovements::GetCommandLine");
-
-  Serial.println("just referencing array...");
-  Serial.println(m_CommandSets[m_nCurrentCmd]);
-  Serial.println("and a line...");
-  Serial.println(m_CommandSets[m_nCurrentCmd] + (ixLine * COMMAND_LINE_LENGTH));
-*/
-  //Serial.println(pLine);
-  return m_CommandSets[m_nCurrentCmd] + (ixLine * COMMAND_LINE_LENGTH);
-
-/*
-  return (char*)pgm_read_ptr_near( m_cmd0 + nLine);
-
-  if(nCmd == 0)
-    return (char*)pgm_read_ptr_near( m_cmd0 + nLine);
-  if(nCmd == 1)
-    return (char*)pgm_read_ptr_near( m_cmd1 + nLine);
-
-   if(nCmd == 0)
-    return m_cmd0[nLine];
-  if(nCmd == 1)
-    return m_cmd1[nLine];
-*/
-
-    /*
-  if(nCmd == 2)
-    return m_cmd2[nLine];
-  if(nCmd == 3)
-    return m_cmd3[nLine];
-  if(nCmd == 4)
-    return m_cmd4[nLine];
-  if(nCmd == 5)
-    return m_cmd5[nLine];
-  if(nCmd == 6)
-    return m_cmd6[nLine];
-  if(nCmd == 7)
-    return m_cmd7[nLine];*/
-  // return m_chNullCommand; 
+  char * ptr = (char *) pgm_read_word (m_CommandSets[nCmd]);
+  char buffer [COMMAND_LINE_LENGTH + 1];
+  strncpy_P(buffer, ptr + (ixLine * COMMAND_LINE_LENGTH), COMMAND_LINE_LENGTH);
+  buffer[COMMAND_LINE_LENGTH] = '\0';
+  strcpy(m_bufferCurrentLine, buffer);
+  // Serial.print("CMovements::GetCommandLine: ");Serial.println(m_bufferCurrentLine);
+  return m_bufferCurrentLine;
 }
 
 int CMovements::GetCommandLineTotalCount(int nCmd)
 {
-  int nRet = strlen(m_CommandSets[m_nCurrentCmd]) / COMMAND_LINE_LENGTH;
-  return nRet;
+  char * ptr = (char *) pgm_read_word (m_CommandSets[nCmd]);
+  int nLen = strlen_P(ptr);
+  int nLineCount = nLen / COMMAND_LINE_LENGTH;
+  //// Serial.print("nLineCount: ");Serial.println(nLineCount);
+  return nLineCount;
 }
 
 

@@ -31,6 +31,11 @@ void ServoMotor::AttachToPin(int nPin, int nInitialPos)
 
 void ServoMotor::SetNewTargetPosition(int nPos, int msMovementDuration)
 {
+  if(nPos < 0)
+    return;
+  if(nPos > 180)
+    return;
+
   m_StartPosition = m_CurrentPosition;
   m_IntendedPosition = nPos;
   m_MovementDuration = msMovementDuration;
@@ -52,7 +57,7 @@ bool ServoMotor::ProcessTime(int ms)
     m_CurrentPosition = m_IntendedPosition;
     m_servo.write(m_CurrentPosition);
 
-    Serial.print("Servo: ");Serial.print(m_nPin);Serial.print(" moving to: ");Serial.println(m_CurrentPosition);
+    PrintServoPos(m_nPin, m_CurrentPosition);
     return false;
   }
 
@@ -73,12 +78,18 @@ bool ServoMotor::ProcessTime(int ms)
   }
 
   m_servo.write(m_CurrentPosition);
-  Serial.print("Servo: ");Serial.print(m_nPin);Serial.print(" moving to: ");Serial.println(m_CurrentPosition);
+  PrintServoPos(m_nPin, m_CurrentPosition);
   return true;
 }
 
 bool ServoMotor::SetPosition(int nDeg)
 {
+  if(nDeg < 0)
+    return false;
+
+  if(nDeg > 180)
+    return false;
+  
   if(m_CurrentPosition == nDeg)
     return false;
 
@@ -86,6 +97,12 @@ bool ServoMotor::SetPosition(int nDeg)
   m_servo.write(m_CurrentPosition);
 
   return true;
+}
+
+
+void ServoMotor::PrintServoPos(int nServo, int nPos)
+{
+  // Serial.print("Servo: ");Serial.print(nServo);Serial.print(" moving to: ");Serial.println(nPos);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////

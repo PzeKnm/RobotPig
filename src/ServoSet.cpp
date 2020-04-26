@@ -53,9 +53,9 @@ bool CServoSet::ApplyCommands(const char* pszCmd)
   for(int n = 0; n < NUM_SERVOS; n++)
   {
     int nPos = GetIntFromCmdLine(pszCmd, 3 + (n * 7) , 3);  
- /*
+ /**/
     Serial.print("nServo: "); Serial.print(n); Serial.print(" nPos: "); Serial.println(nPos);
-*/
+
     myServos[n].SetNewTargetPosition(nPos, nCmdTime);
   }
 
