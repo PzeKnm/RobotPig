@@ -36,7 +36,10 @@ int GetMovementCommand(SVizData vd)
   // special test state
   if(vd.GameState == Initialised)
   {
-    return CMovements::PirateDance;
+    if(vd.PotentialScore < NUMBER_OF_MOVEMENTS)
+      return vd.PotentialScore;
+    else
+      return (NUMBER_OF_MOVEMENTS - 1);      
   }
 
   // During game play, the pig should indicate correct and incorrect answers
@@ -57,11 +60,11 @@ int GetMovementCommand(SVizData vd)
         if(nScoreChange > 0)
         {
           if(vd.PotentialScore > 8)
-            return CMovements::Nod;  // Supernod would be better 
+            return CMovements::ThankYouLord;  // Supernod would be better 
           if(vd.PotentialScore > 6)
-            return CMovements::Nod;  // Still pretty good
+            return CMovements::PirateDance;  // Still pretty good
           if(vd.PotentialScore > 4)
-            return CMovements::Nod;  // Meh, could have been a guess   
+            return CMovements::Hooray;  // Meh, could have been a guess   
           if(vd.PotentialScore > 2)
             return CMovements::Nod;  // Not very confident 
 
@@ -71,13 +74,13 @@ int GetMovementCommand(SVizData vd)
         else
         {
           if(vd.PotentialScore > 8)
-            return CMovements::ShakeHead;  // A triumph of confidence over knowledge
+            return CMovements::QuickShake;  // A triumph of confidence over knowledge
           if(vd.PotentialScore > 6)
-            return CMovements::ShakeHead;  // At least they're trying to play the game
+            return CMovements::QuickShake;  // At least they're trying to play the game
           if(vd.PotentialScore > 4)
-            return CMovements::ShakeHead;  // Not very ambitious  
+            return CMovements::OhhhNoooo;  // Not very ambitious  
           if(vd.PotentialScore > 2)
-            return CMovements::ShakeHead;  // Do they understand how this is meant to work ??!?
+            return CMovements::OhhhNoooo;  // Do they understand how this is meant to work ??!?
 
           // This is the monkey level
           return CMovements::ShakeHead;           
@@ -140,7 +143,7 @@ void loop()
     SVizData vd = m_protocol.GetVizDataConsuming();
 
     int nCmd = GetMovementCommand(vd);
-    if(nCmd > 0)
+    if(nCmd >= 0)
     {
       if(!m_movements.IsBusy())
       {
